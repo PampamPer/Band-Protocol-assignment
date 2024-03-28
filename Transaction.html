@@ -1,0 +1,79 @@
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Transaction</title>
+    <script>
+      async function post() {
+        const symbol = document.getElementById("symbol").value;
+        const price = parseInt(document.getElementById("price").value);
+
+        if (symbol == "" || !price) return alert("Please fill information");
+        else {
+          const currentDate = new Date();
+          const timestamp = currentDate.getTime();
+
+            await fetch("https://mock-node-wgqbnxruha-as.a.run.app/broadcast", {
+              method: "POST",
+              mode: "no-cors",
+              body: JSON.stringify({
+                symbol: symbol,
+                price: price,
+                timestamp: timestamp,
+              }),
+              headers: {
+                "Content-type": "application/json; charset=UTF-8",
+              },
+            })
+              .then((response) => response.json())
+              .then((json) => get(json));
+        }
+
+      }
+
+      function get(json) {
+        const tx_hash = json["tx_hash"];
+        fetch(`https://mock-node-wgqbnxruha-as.a.run.app/check/${tx_hash}`, {
+          method: "GET",
+          mode: "no-cors",
+        })
+          .then((response) => response.json())
+          .then((json) => result(json));
+      }
+
+      function result(json) {
+        const response = json["tx_status"];
+        if (response == "CONFIRMED")
+          document.getElementById("response").innerHTML =
+            "Transaction has been processed and confirmed";
+        else if (response == "FAILED")
+          document.getElementById("response").innerHTML =
+            "Transaction failed to process";
+        else if (response == "PENDING")
+          document.getElementById("response").innerHTML =
+            "Transaction is awaiting processing";
+        else if (response == "DNE")
+          document.getElementById("response").innerHTML =
+            "Transaction does not exist";
+      }
+    </script>
+  </head>
+  <body>
+    <div
+      id="form"
+      style="
+        display: flex;
+        flex-direction: column;
+        margin: auto;
+        width: 60%;
+        border: 3px solid #73ad21;
+        padding: 10px;
+      "
+    >
+      <input id="symbol" type="text" placeholder="symbol" />
+      <input id="price" type="text" placeholder="price" />
+      <button onclick="post()">POST!</button>
+      <p id="response"></p>
+    </div>
+  </body>
+</html>
